@@ -1,0 +1,135 @@
+#include "struct.h"
+#include "funcDef.h"
+#include <iostream>
+#include "stdafx.h"
+
+using namespace std;
+
+
+bTableBlocks* dTableMultiply(bTableBlocks *a,bTableBlocks *mul)
+{
+	bTableBlocks *mov = NULL,*linkN = NULL,*ret = NULL,*b = mul;
+
+	while(a!=NULL)
+	{
+		b = mul;
+		while(b!=NULL)
+		{
+			if(linkN == NULL)
+			{
+				linkN = new bTableBlocks;
+				linkN->c = b->c + a->c;
+				linkN->p = b->p * a->p;
+				linkN->bTable = NULL;
+				mov = linkN;
+				ret = linkN;
+			}
+			else
+			{
+				linkN = new bTableBlocks;
+				linkN->c = b->c + a->c;
+				linkN->p = b->p * a->p;
+				linkN->bTable = NULL;
+				mov->bTable = linkN;
+				mov = mov->bTable;
+			}
+			b = b->bTable;
+		}
+		a = a->bTable;
+	}
+	return ret;
+}
+
+	
+
+
+bT* dTableBuild(bT *b,N* trk,int totNodes,int largTimeVar,int *cnt,int *tim)
+{
+	bT *d = new bT[totNodes];
+	cnt = new int;
+	int i;
+	tim = new int;
+
+										//Initializing dTab[0,j] = bTab[0,j]
+
+	d[0].bTabBlock =  new bTableBlocks*[largTimeVar];
+	
+	for(i=0;i<largTimeVar;i++)
+	{
+		bTableBlocks *tmp = b[0].bTabBlock[i],*temp = NULL,*mov = NULL;
+
+		while(tmp!=NULL)
+		{
+			temp = new bTableBlocks;
+			temp->c = tmp->c;
+			temp->p = tmp->p;
+			temp->bTable = NULL;
+			if(mov == NULL)
+			{
+				mov = temp;
+				d[0].bTabBlock[i] = temp;
+			}
+			else 
+			{
+				mov->bTable = temp;
+				mov = mov->bTable;
+			}
+			tmp = tmp->bTable;
+		}
+	}
+	
+	i=1;
+	while(i<totNodes)
+	{
+		int flg=1,j=i,k=0;
+		d[i].bTabBlock = new bTableBlocks*[50];
+		*cnt=0;
+
+		while(k<30){d[i].bTabBlock[k] = NULL;k++;}
+		
+		while(flg)
+		{
+			k=i-1;
+			while(k<j)
+			{
+				if(d[i].bTabBlock[j] == NULL)
+					d[i].bTabBlock[j] = dTableMultiply(d[i-1].bTabBlock[k],b[i].bTabBlock[j-k-1]);
+				
+ 				else
+				{
+					bTableBlocks *end = d[i].bTabBlock[j];
+					while(end->bTable!=NULL)end = end->bTable;
+					end->bTable = dTableMultiply(d[i-1].bTabBlock[k],b[i].bTabBlock[j-k-1]);
+				}
+				k++;
+			}
+			
+			
+			sortLinkList(d[i].bTabBlock[j]);
+
+			d[i].bTabBlock[j] = redPairRemove(d[i].bTabBlock[j]);
+				
+			if(j>i)
+			{
+				bTableBlocks* t = d[i].bTabBlock[j];
+				*cnt=0;
+				while(t!=NULL)
+				{
+					t = t->bTable;
+					(*cnt)++;
+				}
+			}	
+			
+			if(*cnt == 1)
+			{
+				flg=0;
+				*tim=j;
+			}
+			j++;
+		}
+
+		i++;
+	}
+
+	return d;
+}
