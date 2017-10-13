@@ -1,0 +1,234 @@
+1.	#include "funcDef.h"
+2.	#include <iostream>
+3.	//#include "stdafx.h"
+4.	
+5.	using namespace std;
+6.	
+7.	
+8.	
+9.							/*	addLinkList function adds the previous link list to the present one
+10.								b is the prev block and a is the current block					*/
+11.	
+12.	bTableBlocks* addLinkList(bTableBlocks *a,bTableBlocks *b)
+13.	{
+14.		bTableBlocks *linkN;
+15.		bTableBlocks *p = a;
+16.		
+17.		if(a==NULL){}
+18.		else
+19.		{
+20.			while(a->bTable!=NULL)a=a->bTable;
+21.		}
+22.	
+23.		while(b!=NULL)
+24.		{
+25.			linkN = new bTableBlocks;
+26.			linkN->c = b->c;
+27.			linkN->p = b->p;
+28.			linkN->bTable = NULL;
+29.			if(a==NULL){a = linkN;p=a;}
+30.			else 
+31.			{
+32.				a->bTable = linkN;
+33.				a=a->bTable;
+34.			}
+35.			b = b->bTable;
+36.		}
+37.		return p;
+38.	}
+39.	
+40.							/* Sorting each block of bTable */
+41.	
+42.	void sortLinkList(bTableBlocks *b)
+43.	{
+44.		
+45.		while(b->bTable!=NULL)
+46.		{
+47.			bTableBlocks *a = b->bTable;
+48.	
+49.			while(a!=NULL)
+50.			{
+51.				if(b->p > a->p)
+52.				{
+53.					float tmp = b->p;
+54.					b->p = a->p;
+55.					a->p = tmp;
+56.	
+57.					tmp = b->c;
+58.					b->c = a->c;
+59.					a->c = tmp;
+60.				}
+61.				a = a->bTable;
+62.			}
+63.			
+64.	
+65.			b = b->bTable;
+66.		}
+67.	}
+68.	
+69.	bTableBlocks* redPairRemove(bTableBlocks *p)
+70.	{
+71.			int flg=0;
+72.			bTableBlocks *b = p;
+73.			while(b->bTable!=NULL)
+74.			{
+75.				bTableBlocks *tmp = b->bTable;
+76.				bTableBlocks *prev = b;
+77.				flg=1;
+78.	
+79.				while(tmp!=NULL)
+80.				{
+81.					bTableBlocks *rem;
+82.					if(b->p == tmp->p)
+83.					{
+84.						if(b->c <= tmp->c)
+85.						{
+86.							rem = tmp;
+87.							tmp = tmp->bTable;
+88.							prev->bTable = tmp;
+89.							if(prev!=rem)free(rem);
+90.							else prev=tmp;
+91.						}
+92.						else
+93.						{
+94.							if(p==b)
+95.							{
+96.								rem = b;
+97.								b = tmp;
+98.								free(rem);
+99.								p=b;
+100.								flg=0;
+101.								break;
+102.							}
+103.							else
+104.							{
+105.								bTableBlocks *mid = p;
+106.								while(mid->bTable!=b)mid = mid->bTable;
+107.								mid->bTable=tmp;
+108.								rem = b;
+109.								b = tmp;
+110.								free(rem);
+111.								flg=0;
+112.								break;
+113.							}
+114.						}
+115.					}
+116.					else if(b->p<tmp->p)
+117.					{
+118.						if(b->c >= tmp->c)
+119.						{
+120.							if(p==b)
+121.							{
+122.								rem = b;
+123.								b = tmp;
+124.								free(rem);
+125.								p=b;
+126.								flg=0;
+127.								break;
+128.							}
+129.							else
+130.							{
+131.								bTableBlocks *mid = p;
+132.								while(mid->bTable!=b)mid = mid->bTable;
+133.								mid->bTable=tmp;
+134.								rem = b;
+135.								b = tmp;
+136.								free(rem);
+137.								flg=0;
+138.								break;
+139.							}
+140.						}
+141.						else tmp = tmp->bTable;
+142.					}
+143.					if(prev!=NULL)
+144.					{
+145.						if(prev->bTable != NULL)
+146.						{
+147.							if(prev->bTable->bTable != NULL)prev = prev->bTable;
+148.						}
+149.					}
+150.				}
+151.				if(b->bTable!=NULL&&flg)b=b->bTable;
+152.			}	
+153.			return p;
+154.		}
+155.	
+156.						//Note: Scope limited to given problem in the project document
+157.	
+158.	
+159.	int merge(bT* b,N* trk,int numNodes,int largTimeVar)
+160.	{
+161.		int i=0,j,nM=numNodes;
+162.	
+163.		while(i<numNodes-1)
+164.		{
+165.			j=i+1;
+166.			while(j<numNodes)
+167.			{
+168.				if(trk[i].parNodeNum == trk[j].parNodeNum)
+169.				{
+170.					multiplySortRedRemove(b,i,j,largTimeVar);
+171.					nM--;
+172.					trk[j].parNodeNum = -1;
+173.				}
+174.				j++;
+175.			}
+176.			i++;
+177.		}
+178.		return nM;
+179.	}
+180.	
+181.	void multiplySortRedRemove(bT *b,int i,int j,int blocks)
+182.	{
+183.		int k=0;
+184.		bTableBlocks *p,*m,*linkN,*q;
+185.		bT *ret = new bT;
+186.		ret->bTabBlock = new bTableBlocks*[blocks];
+187.		
+188.		int l=0;
+189.		while(l<blocks)
+190.		{
+191.			ret->bTabBlock[l] = NULL;
+192.			l++;
+193.		}
+194.	
+195.		while(k<blocks)
+196.		{
+197.			p = b[i].bTabBlock[k];
+198.			m = b[j].bTabBlock[k];
+199.			bTableBlocks *mov = NULL;
+200.			/*while(q!=NULL){cnt1++;q = q->bTable;}
+201.			while(p!=NULL){cnt2++;p = p->bTable;}
+202.	
+203.			if(cnt1>cnt2)cnt = cnt1;
+204.			else cnt = cnt2; */
+205.	
+206.			while(p!=NULL)
+207.			{
+208.				q=m;
+209.				while(q!=NULL)
+210.				{
+211.					linkN = new bTableBlocks;
+212.					linkN->c = p->c + q->c;
+213.					linkN->p = p->p * q->p;
+214.					linkN->bTable = NULL;
+215.					if(ret->bTabBlock[k] == NULL)
+216.					{
+217.						ret->bTabBlock[k] = linkN;
+218.						mov= ret->bTabBlock[k];
+219.					}
+220.					else
+221.					{
+222.						mov->bTable	= linkN;
+223.						mov = mov->bTable;
+224.					}
+225.					q = q->bTable;
+226.				}
+227.				p = p->bTable;
+228.			}
+229.			sortLinkList(ret->bTabBlock[k]);
+230.			redPairRemove(ret->bTabBlock[k]);
+231.			k++;
+232.		}
+233.		b[i] = *ret;
+234.	}
